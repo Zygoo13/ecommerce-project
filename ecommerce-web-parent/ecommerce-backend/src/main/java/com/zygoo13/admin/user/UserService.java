@@ -6,6 +6,7 @@ import com.zygoo13.common.entity.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class UserService {
 
     UserRepository userRepository;
     RoleRepository roleRepository;
+    PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers(){
         return userRepository.findAll();
@@ -27,7 +29,13 @@ public class UserService {
     }
 
     public void saveUser(User user) {
+        encodePassword(user);
         userRepository.save(user);
+    }
+
+    void encodePassword(User user){
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
     }
 
 

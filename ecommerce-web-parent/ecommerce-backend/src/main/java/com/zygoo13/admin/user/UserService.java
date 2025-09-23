@@ -38,5 +38,10 @@ public class UserService {
         user.setPassword(encodedPassword);
     }
 
+    boolean isEmailUnique(String email) {
+        User existingUser = userRepository.findByEmail(email);
+        return existingUser == null;
+    }
+
 
 }

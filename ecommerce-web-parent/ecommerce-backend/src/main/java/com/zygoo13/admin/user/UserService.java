@@ -76,6 +76,16 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Could not find any user with ID " + id));
     }
 
+    public void deleteUser(Integer id){
+        userRepository.deleteById(id);
+    }
+
+    public void updateUserEnabledStatus(Integer id, boolean enabled) {
+        User user = getUserById(id);
+        user.setEnabled(enabled);
+        userRepository.save(user);
+    }
+
 
 
 }

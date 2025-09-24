@@ -88,19 +88,29 @@
                 <td>[[${user.lastName}]]</td>
                 <td>[[${user.roles}]]</td>
                 <td>
-                    <a href="#" th:if="${user.enabled}" class="text-success text-decoration-none">
+                    <!-- Nếu đang enabled thì hiển thị icon xanh và link sẽ disable -->
+                    <a th:if="${user.enabled}"
+                       th:href="@{'/users/' + ${user.id} + '/enabled/false'}"
+                       class="text-success text-decoration-none"
+                       title="Disable this user">
                         <i class="fas fa-check-circle"></i>
                     </a>
-                    <a href="#" th:if="${!user.enabled}" class="text-secondary text-decoration-none">
+
+                    <!-- Nếu đang disabled thì hiển thị icon xám và link sẽ enable -->
+                    <a th:if="${!user.enabled}"
+                       th:href="@{'/users/' + ${user.id} + '/enabled/true'}"
+                       class="text-secondary text-decoration-none"
+                       title="Enable this user">
                         <i class="fas fa-check-circle"></i>
                     </a>
                 </td>
+
 
                 <td>
                     <a th:href="@{'/users/edit/' + ${user.id}}" class="text-success me-2">
                         <i class="fas fa-edit"></i> Edit
                     </a>
-                    <a href="#" class="text-danger">
+                    <a th:href="@{'/users/delete/' + ${user.id}}" class="text-danger">
                         <i class="fas fa-trash"></i> Delete
                     </a>
                 </td>

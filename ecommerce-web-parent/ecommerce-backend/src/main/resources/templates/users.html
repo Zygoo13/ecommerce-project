@@ -79,7 +79,7 @@
             <tr th:each="user : ${listUsers}">
                 <td>[[${user.id}]]</td>
                 <td>
-                    <img th:if="${user.photos != null}" th:src="@{'/user-photos/' + ${user.photos}}"
+                    <img th:if="${user.photos != null}" th:src="@{${user.photosImagePath}}"
                          alt="User Photo" class="img-thumbnail" style="max-height: 60px;">
                     <span th:if="${user.photos == null}" class="fas fa-image-portrait fa-3x icon-dark"></span>
                 </td>

@@ -82,6 +82,8 @@ public class User {
         return firstName + " " + lastName;
     }
 
+
+
     public boolean hasRole(String roleName) {
         return roles.stream().anyMatch(r -> r.getName().equals(roleName));
     }

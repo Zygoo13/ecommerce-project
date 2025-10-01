@@ -5,6 +5,8 @@ import com.zygoo13.common.entity.Role;
 import com.zygoo13.common.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -24,10 +26,8 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/users")
-    public String listAllUsers(Model model) {
-        List<User> listUsers = userService.getAllUsers();
-        model.addAttribute("listUsers", listUsers);
-        return "users";
+    public String listFirstPage(Model model) {
+        return listByPage(1, model, "firstName", "asc");
     }
 
     @GetMapping("/users/new")
@@ -110,4 +110,36 @@ public class UserController {
         redirectAttributes.addFlashAttribute("message", message);
         return "redirect:/users";
     }
+
+    @GetMapping("/users/page/{pageNum}")
+    public String listByPage(@PathVariable(name = "pageNum") int pageNum, Model model,
+        @RequestParam(value = "sortField", required = false, defaultValue = "id") String sortField,
+        @RequestParam(value = "sortDir", required = false, defaultValue = "asc") String sortDir
+    ) {
+
+        Page<User> page = userService.listByPage(pageNum - 1, sortField, sortDir);
+        List<User> listUsers = page.getContent();
+
+        long startCount = (long) (pageNum - 1) * UserService.USERS_PER_PAGE + 1;
+        long endCount = startCount + UserService.USERS_PER_PAGE - 1;
+        if(endCount > page.getTotalElements()){
+            endCount = page.getTotalElements();
+        }
+        String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
+        model.addAttribute("startCount", startCount);
+        model.addAttribute("endCount", endCount);
+        model.addAttribute("totalItems", page.getTotalElements());
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("currentPage", pageNum);
+        model.addAttribute("listUsers", listUsers);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", reverseSortDir);
+
+
+        return "users";
+    }
+
+
+
 }

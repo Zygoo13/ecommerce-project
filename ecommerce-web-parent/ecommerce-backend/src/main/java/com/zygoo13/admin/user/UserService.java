@@ -5,6 +5,9 @@ import com.zygoo13.common.entity.User;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
+    public static final int USERS_PER_PAGE = 4;
 
     UserRepository userRepository;
     RoleRepository roleRepository;
@@ -26,6 +30,25 @@ public class UserService {
 
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
+    }
+
+    // UserService.java - Đã chỉnh sửa
+
+    public Page<User> listByPage(int pageNum, String sortField, String sortDir) {
+        // Bảo vệ khỏi lỗi: Dù đã fix ở Controller, code Service vẫn nên tự bảo vệ
+        if (sortField == null || sortField.isEmpty()) {
+            sortField = "id"; // Giá trị mặc định cuối cùng
+        }
+
+        // Tạo đối tượng Sort an toàn và gọn gàng hơn
+        Sort sort = sortDir.equals("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        // Spring Data Paging (PageRequest) cần trang 0-index.
+        PageRequest pageable = PageRequest.of(pageNum, USERS_PER_PAGE, sort);
+
+        return userRepository.findAll(pageable);
     }
 
     /** Lưu user và trả về entity đã lưu */
@@ -81,4 +104,6 @@ public class UserService {
         user.setEnabled(enabled);
         userRepository.save(user);
     }
+
+
 }

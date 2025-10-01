@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class UserService {
 
     // UserService.java - Đã chỉnh sửa
 
-    public Page<User> listByPage(int pageNum, String sortField, String sortDir) {
+    public Page<User> listByPage(int pageNum, String sortField, String sortDir, String keyword) {
         // Bảo vệ khỏi lỗi: Dù đã fix ở Controller, code Service vẫn nên tự bảo vệ
         if (sortField == null || sortField.isEmpty()) {
             sortField = "id"; // Giá trị mặc định cuối cùng
@@ -47,6 +48,10 @@ public class UserService {
 
         // Spring Data Paging (PageRequest) cần trang 0-index.
         PageRequest pageable = PageRequest.of(pageNum, USERS_PER_PAGE, sort);
+
+        if(keyword != null && !keyword.isEmpty()) {
+            return userRepository.search(keyword, pageable);
+        }
 
         return userRepository.findAll(pageable);
     }

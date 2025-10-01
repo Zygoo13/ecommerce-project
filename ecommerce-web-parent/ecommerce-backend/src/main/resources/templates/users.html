@@ -55,6 +55,18 @@
         </div>
     </div>
 
+    <div>
+        <form th:action="@{/users/page/1}" class="d-flex align-items-center">
+            <input type="hidden" name="sortField" th:value="${sortField}" />
+            <input type="hidden" name="sortDir" th:value="${sortDir}" />
+            Filter:&nbsp;
+            <input type="search" class="form-control" th:value="${keyword}" name="keyword" placeholder="Search..." />
+            <input type="submit" value="Search" class="btn btn-primary"/>
+            <input type="button" value="Clear" class="btn btn-secondary"
+                   th:onclick="|window.location.href='@{/users/page/1}'|"/>
+        </form>
+    </div>
+
     <!-- Message -->
     <div th:if="${message != null}" class="alert alert-success text-center">
         [[${message}]]
@@ -67,7 +79,9 @@
             <tr>
                 <th class="hideable-column">
                     <a th:href="@{/users/page/1(sortField='id',
-                      sortDir=${sortField != 'id' ? 'asc' : reverseSortDir})}"
+                      sortDir=${sortField != 'id' ? 'asc' : reverseSortDir},
+                          keyword=${keyword}
+                      )}"
                     >User ID</a>
                     <span th:if="${sortField == 'id'}"
                           th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down' }"></span>
@@ -75,14 +89,18 @@
                 <th>Photos</th>
                 <th>
                     <a th:href="@{/users/page/1(sortField='email',
-                       sortDir=${sortField != 'email' ? 'asc' : reverseSortDir})}"
+                       sortDir=${sortField != 'email' ? 'asc' : reverseSortDir},
+                       keyword=${keyword}
+                       )}"
                     >E-mail</a>
                     <span th:if="${sortField == 'email'}"
                           th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down' }"></span>
                 </th>
                 <th>
                     <a th:href="@{/users/page/1(sortField='firstName',
-                        sortDir=${sortField != 'firstName' ? 'asc' : reverseSortDir})}">
+                        sortDir=${sortField != 'firstName' ? 'asc' : reverseSortDir},
+                        keyword=${keyword}
+                        )}">
                         First Name
                     </a>
                     <span th:if="${sortField == 'firstName'}"
@@ -90,7 +108,9 @@
                 </th>
                 <th class="hideable-column">
                     <a th:href="@{/users/page/1(sortField='lastName',
-                      sortDir=${sortField != 'lastName' ? 'asc' : reverseSortDir})}"
+                      sortDir=${sortField != 'lastName' ? 'asc' : reverseSortDir},
+                      keyword=${keyword}
+                      )}"
                     >Last Name</a>
                     <span th:if="${sortField == 'lastName'}"
                           th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down' }"></span>
@@ -150,11 +170,17 @@
             </tbody>
         </table>
 
-        <div class="text-center m-1 ">
+        <div class="text-center m-1 " th:if="${totalItems > 0}">
             <span>Showing users #[[${startCount}]] to #[[${endCount}]] of [[${totalItems}]]</span>
         </div>
+
+        <div class="text-center m-1" th:unless="${totalItems > 0}">
+            <span class="text-muted">No users found</span>
+        </div>
+
+
         <nav>
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center" th:if="${totalPages > 1}">
 
                 <!-- First -->
                 <li th:class="${currentPage == 1} ? 'page-item disabled' : 'page-item'">

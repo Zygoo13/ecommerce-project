@@ -27,7 +27,7 @@ public class UserController {
 
     @GetMapping("/users")
     public String listFirstPage(Model model) {
-        return listByPage(1, model, "firstName", "asc");
+        return showUserPage(1, "firstName", "asc", null, model);
     }
 
     @GetMapping("/users/new")
@@ -111,21 +111,16 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @GetMapping("/users/page/{pageNum}")
-    public String listByPage(@PathVariable(name = "pageNum") int pageNum, Model model,
-        @RequestParam(value = "sortField", required = false, defaultValue = "id") String sortField,
-        @RequestParam(value = "sortDir", required = false, defaultValue = "asc") String sortDir
-    ) {
-
-        Page<User> page = userService.listByPage(pageNum - 1, sortField, sortDir);
+    private String showUserPage(int pageNum, String sortField, String sortDir, String keyword, Model model) {
+        Page<User> page = userService.listByPage(pageNum - 1, sortField, sortDir, keyword);
         List<User> listUsers = page.getContent();
 
         long startCount = (long) (pageNum - 1) * UserService.USERS_PER_PAGE + 1;
         long endCount = startCount + UserService.USERS_PER_PAGE - 1;
-        if(endCount > page.getTotalElements()){
-            endCount = page.getTotalElements();
-        }
+        if (endCount > page.getTotalElements()) endCount = page.getTotalElements();
+
         String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
+
         model.addAttribute("startCount", startCount);
         model.addAttribute("endCount", endCount);
         model.addAttribute("totalItems", page.getTotalElements());
@@ -135,9 +130,20 @@ public class UserController {
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", reverseSortDir);
-
+        model.addAttribute("keyword", keyword);
 
         return "users";
+    }
+
+    @GetMapping("/users/page/{pageNum}")
+    public String listByPage(
+            @PathVariable(name = "pageNum") int pageNum,
+            @RequestParam(value = "sortField", required = false, defaultValue = "id") String sortField,
+            @RequestParam(value = "sortDir", required = false, defaultValue = "asc") String sortDir,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            Model model) {
+
+        return showUserPage(pageNum, sortField, sortDir, keyword, model);
     }
 
 

@@ -57,23 +57,29 @@ public class UserService {
     // Lưu user (tạo mới hoặc cập nhật)
     public User saveUser(User user) {
         boolean isUpdatingUser = (user.getId() != null);
-        // Nếu đang cập nhật user
+
         if (isUpdatingUser) {
             User existingUser = userRepository.findById(user.getId())
                     .orElseThrow(() -> new NoSuchElementException("Could not find any user with ID " + user.getId()));
 
+            // giữ password cũ nếu không nhập mới
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
-                user.setPassword(existingUser.getPassword()); // giữ nguyên pass cũ
+                user.setPassword(existingUser.getPassword());
             } else {
                 encodePassword(user);
             }
-        // Nếu tạo user mới
+
+            // 🔒 GIỮ ẢNH CŨ NẾU KHÔNG CÓ ẢNH MỚI/HIDDEN RỖNG
+            if (user.getPhotos() == null || user.getPhotos().isBlank()) {
+                user.setPhotos(existingUser.getPhotos());
+            }
         } else {
             encodePassword(user);
         }
 
         return userRepository.save(user);
     }
+
 
     // Mã hóa mật khẩu
     void encodePassword(User user) {

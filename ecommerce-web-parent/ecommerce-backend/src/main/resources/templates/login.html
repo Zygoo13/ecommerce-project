@@ -1,10 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login • Ecommerce Admin</title>
+
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/fontawesome/all.css}" />
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #e9efff, #f8fafc);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Inter", system-ui, sans-serif;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            padding: 2rem 2.5rem;
+            background-color: #fff;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .brand-logo {
+            height: 64px;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+        }
+
+        .input-group-text {
+            background: transparent;
+            border-right: 0;
+        }
+
+        .input-group .form-control {
+            border-left: 0;
+        }
+
+        .btn-primary {
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+
+        .text-muted a {
+            text-decoration: none;
+        }
+
+        .text-muted a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            font-size: 0.9rem;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 1.5rem;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
-$END$
+
+<main>
+    <div class="login-card">
+        <div class="text-center">
+            <a th:href="@{/}">
+                <img th:src="@{/images/van_anh.png}" alt="Logo" class="brand-logo">
+            </a>
+            <h5 class="fw-semibold mb-1">Ecommerce Admin</h5>
+            <p class="text-muted mb-4">Sign in to your dashboard</p>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <span>Invalid email or password.</span>
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fa-regular fa-circle-check me-2"></i>
+            <span>You have been signed out successfully.</span>
+        </div>
+
+        <!-- Login Form -->
+        <form th:action="@{/login}" method="post" class="needs-validation" novalidate>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa-regular fa-envelope"></i></span>
+                    <input id="email" name="email" type="email" class="form-control"
+                           placeholder="you@example.com" required autofocus />
+                    <div class="invalid-feedback">Please enter your email address.</div>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                    <input id="password" name="password" type="password" class="form-control"
+                           placeholder="••••••••" required />
+                    <button type="button" class="toggle-btn" onclick="togglePwd()">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <div class="invalid-feedback">Please enter your password.</div>
+                </div>
+            </div>
+
+            <!-- Remember + Forgot -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <a href="#" class="small text-muted">Forgot password?</a>
+            </div>
+
+            <!-- Submit -->
+            <button class="btn btn-primary w-100 mb-3" type="submit">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In
+            </button>
+
+            <!-- Footer link -->
+            <div class="text-center text-muted small">
+                Don’t have an account? <a th:href="@{/register}">Register here</a>
+            </div>
+        </form>
+
+        <div class="footer">
+            &copy; [[${#dates.format(#dates.createNow(), 'yyyy')}]] Ecommerce Admin
+        </div>
+    </div>
+</main>
+
+<!-- Scripts -->
+<script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+<script>
+    // Client-side validation
+    (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // Toggle password visibility
+    function togglePwd() {
+        const pwd = document.getElementById('password');
+        const icon = event.currentTarget.querySelector('i');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+</script>
 </body>
 </html>

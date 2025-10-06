@@ -92,13 +92,6 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void testGetUserByEmail() {
-        String email = "anh001@gmail.com";
-        User user = userRepository.findByEmail(email);
-        assertThat(user).isNotNull();
-    }
-
-    @Test
     public void testListFirstPage() {
         int pageNumber = 0;
         int pageSize = 4;

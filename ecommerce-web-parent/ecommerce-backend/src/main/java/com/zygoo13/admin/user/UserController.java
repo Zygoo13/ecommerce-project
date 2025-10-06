@@ -55,36 +55,32 @@ public class UserController {
     @PostMapping("/users/save")
     public String saveUser(
             User user,
-            // MultipartFile để nhận file upload
             RedirectAttributes redirectAttributes,
-            // Tên "image" phải trùng với thẻ <input type="file" name="image">
             @RequestParam("image") MultipartFile multipartFile) throws IOException {
 
-        // Xử lý ảnh upload
         if (!multipartFile.isEmpty()) {
-            String fileName = StringUtils.cleanPath(
-                    Objects.requireNonNull(multipartFile.getOriginalFilename()));
+            String fileName = StringUtils.cleanPath(Objects.requireNonNull(multipartFile.getOriginalFilename()));
             user.setPhotos(fileName);
 
-            // Lưu user trước để lấy ID
             User savedUser = userService.saveUser(user);
 
-            // Thư mục lưu file theo id user
-            String uploadDir = System.getProperty("user.dir") + "/ecommerce-web-parent/ecommerce-backend/user-photos/" + savedUser.getId();
+            String uploadDir = System.getProperty("user.dir")
+                    + "/ecommerce-web-parent/ecommerce-backend/user-photos/" + savedUser.getId();
 
             FileUploadUtil.cleanDir(uploadDir);
             FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
         } else {
-            // Nếu không upload file, giữ nguyên ảnh cũ (nếu có)
-            if (user.getPhotos() != null && user.getPhotos().isEmpty()) {
-                user.setPhotos(null);
-            }
+            // ❌ ĐỪNG ép về null nữa
+            // if (user.getPhotos() != null && user.getPhotos().isEmpty()) user.setPhotos(null);
+
+            // Service đã tự giữ ảnh cũ nếu photos trống
             userService.saveUser(user);
         }
 
         redirectAttributes.addFlashAttribute("message", "The user has been saved successfully.");
         return "redirect:/users";
     }
+
 
 
     // Hiển thị form chỉnh sửa user

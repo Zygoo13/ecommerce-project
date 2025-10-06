@@ -33,22 +33,20 @@ public class UserService {
         return roleRepository.findAll();
     }
 
-    // UserService.java - Đã chỉnh sửa
 
+    // Phân trang và sắp xếp
     public Page<User> listByPage(int pageNum, String sortField, String sortDir, String keyword) {
-        // Bảo vệ khỏi lỗi: Dù đã fix ở Controller, code Service vẫn nên tự bảo vệ
+        // Mặc định sắp xếp theo id
         if (sortField == null || sortField.isEmpty()) {
-            sortField = "id"; // Giá trị mặc định cuối cùng
+            sortField = "id";
         }
-
-        // Tạo đối tượng Sort an toàn và gọn gàng hơn
+        // Mặc định sắp xếp tăng dần
         Sort sort = sortDir.equals("asc")
                 ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();
-
-        // Spring Data Paging (PageRequest) cần trang 0-index.
+        // Tạo đối tượng Pageable với số trang, số phần tử mỗi trang và thông tin sắp xếp
         PageRequest pageable = PageRequest.of(pageNum, USERS_PER_PAGE, sort);
-
+        // Nếu có từ khóa tìm kiếm, gọi phương thức tìm kiếm
         if(keyword != null && !keyword.isEmpty()) {
             return userRepository.search(keyword, pageable);
         }
@@ -56,10 +54,10 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
-    /** Lưu user và trả về entity đã lưu */
+    // Lưu user (tạo mới hoặc cập nhật)
     public User saveUser(User user) {
         boolean isUpdatingUser = (user.getId() != null);
-
+        // Nếu đang cập nhật user
         if (isUpdatingUser) {
             User existingUser = userRepository.findById(user.getId())
                     .orElseThrow(() -> new NoSuchElementException("Could not find any user with ID " + user.getId()));
@@ -67,43 +65,49 @@ public class UserService {
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
                 user.setPassword(existingUser.getPassword()); // giữ nguyên pass cũ
             } else {
-                encodePassword(user); // encode pass mới
+                encodePassword(user);
             }
+        // Nếu tạo user mới
         } else {
-            encodePassword(user); // user mới thì luôn encode
+            encodePassword(user);
         }
 
         return userRepository.save(user);
     }
 
+    // Mã hóa mật khẩu
     void encodePassword(User user) {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
     }
 
+    // Kiểm tra tính duy nhất của email
     public boolean isEmailUnique(Integer id, String email) {
         User existingUser = userRepository.findByEmail(email);
-
+        // Nếu không tìm thấy user nào với email này, tức là email duy nhất
         if (existingUser == null) {
-            return true; // chưa có ai dùng email này
+            return true;
         }
-
+        // Nếu tìm thấy user với email này, kiểm tra xem có phải là chính user đang cập nhật không
         if (id == null) {
-            return false; // đang tạo mới user mà email đã tồn tại
+            return false;
         }
 
         return existingUser.getId().equals(id);
     }
 
+    // Lấy thông tin user theo ID
     public User getUserById(Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Could not find any user with ID " + id));
     }
 
+    // Xóa user theo ID
     public void deleteUser(Integer id) {
         userRepository.deleteById(id);
     }
 
+    // Cập nhật trạng thái kích hoạt user
     public void updateUserEnabledStatus(Integer id, boolean enabled) {
         User user = getUserById(id);
         user.setEnabled(enabled);

@@ -2,6 +2,7 @@ package com.zygoo13.admin.user;
 
 import com.zygoo13.common.entity.Role;
 import com.zygoo13.common.entity.User;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,9 +12,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -57,23 +64,80 @@ public class UserService {
     // Lưu user (tạo mới hoặc cập nhật)
     public User saveUser(User user) {
         boolean isUpdatingUser = (user.getId() != null);
-        // Nếu đang cập nhật user
+
         if (isUpdatingUser) {
             User existingUser = userRepository.findById(user.getId())
                     .orElseThrow(() -> new NoSuchElementException("Could not find any user with ID " + user.getId()));
 
+            // giữ password cũ nếu không nhập mới
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
-                user.setPassword(existingUser.getPassword()); // giữ nguyên pass cũ
+                user.setPassword(existingUser.getPassword());
             } else {
                 encodePassword(user);
             }
-        // Nếu tạo user mới
+
+            // 🔒 GIỮ ẢNH CŨ NẾU KHÔNG CÓ ẢNH MỚI/HIDDEN RỖNG
+            if (user.getPhotos() == null || user.getPhotos().isBlank()) {
+                user.setPhotos(existingUser.getPhotos());
+            }
         } else {
             encodePassword(user);
         }
 
         return userRepository.save(user);
     }
+
+    @Transactional
+    public User updateAccount(Integer userId,
+                              String firstName,
+                              String lastName,
+                              String rawPassword,
+                              MultipartFile image) {
+
+        User existing = getUserById(userId); // throw nếu không tồn tại
+
+        // --- chỉ cập nhật field được phép ---
+        existing.setFirstName(firstName);
+        existing.setLastName(lastName);
+
+        if (rawPassword != null && !rawPassword.isBlank()) {
+            existing.setPassword(passwordEncoder.encode(rawPassword));
+        }
+
+        // Ảnh đại diện: chỉ set khi có upload mới
+        if (image != null && !image.isEmpty()) {
+            String original = org.springframework.util.StringUtils
+                    .cleanPath(Objects.requireNonNull(image.getOriginalFilename()));
+
+            if (original.contains("..")) {
+                throw new IllegalArgumentException("Invalid file name.");
+            }
+
+            // Đặt fileName đơn giản (giữ lại tên) để đường dẫn hiển thị nhất quán
+            // Nếu muốn tránh trùng, có thể thêm tiền tố id/timestamp, nhưng vì ta cleanDir trước nên an toàn.
+            String fileName = original;
+
+            // Dùng cùng baseDir với luồng Edit User
+            String uploadDir = System.getProperty("user.dir")
+                    + "/ecommerce-web-parent/ecommerce-backend/user-photos/" + existing.getId();
+
+            try {
+                // Chỉ giữ 1 ảnh duy nhất
+                com.zygoo13.admin.FileUploadUtil.cleanDir(uploadDir);
+                com.zygoo13.admin.FileUploadUtil.saveFile(uploadDir, fileName, image);
+            } catch (Exception e) {
+                throw new RuntimeException("Could not store image file. Error: " + e.getMessage(), e);
+            }
+
+            existing.setPhotos(fileName);
+        }
+        // else: giữ nguyên existing.getPhotos()
+
+        return userRepository.save(existing);
+    }
+
+
+
 
     // Mã hóa mật khẩu
     void encodePassword(User user) {
@@ -113,6 +177,8 @@ public class UserService {
         user.setEnabled(enabled);
         userRepository.save(user);
     }
+
+
 
 
 }

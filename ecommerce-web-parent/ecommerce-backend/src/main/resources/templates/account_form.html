@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title th:text="${pageTitle}">Account Details</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/fontawesome/all.css}">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+
+    <style>
+        .navbar-brand img { height: 48px }
+        .card { border: none; box-shadow: 0 6px 24px rgba(0,0,0,.06) }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(0,0,0,.06) }
+        .role-chip { border:1px solid #dee2e6; border-radius:999px; padding:.25rem .6rem; margin-right:.25rem; background:#fff }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-0">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-xxl">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <img th:src="@{/images/van_anh.png}" alt="Ecommerce Logo" class="img-fluid">
+                <span class="ms-2 fw-semibold">Ecommerce Admin</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/users}">Users</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/categories}">Categories</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/brands}">Brands</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/products}">Products</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/customers}">Customers</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/shipping}">Shipping</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/orders}">Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/reports}">Reports</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/articles}">Articles</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/menus}">Menus</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/settings}">Settings</a></li>
+                </ul>
+
+                <!-- User dropdown phải -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown" th:if="${#authentication.authenticated}">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <span class="me-2" th:text="${#authentication.principal.fullName}">User Name</span>
+                            <img class="rounded-circle" style="width:32px;height:32px;object-fit:cover"
+                                 th:src="${#authentication.principal.user.photos} != null ?
+                                         @{/user-photos/{id}/{photo}(id=${#authentication.principal.user.id},photo=${#authentication.principal.user.photos})}
+                                         : @{/images/default-user.png}" alt="avatar">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li><a class="dropdown-item" th:href="@{/account}">
+                                <i class="fa-regular fa-user me-2"></i>Account</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="px-3 m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="container-xxl py-4">
+        <h2 class="h4 mb-4">Account Details</h2>
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-4">
+                <div class="card p-4 text-center">
+                    <img class="avatar mb-3" id="avatarPreview"
+                         th:src="${user.photos} != null ?
+                                 @{/user-photos/{id}/{photo}(id=${user.id},photo=${user.photos})}
+                                 : @{/images/default-user.png}"
+                         alt="avatar">
+                    <div class="small text-muted">Ảnh đại diện</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+                <div class="card p-4">
+                    <form th:action="@{/account}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <!-- giữ ảnh cũ khi không upload mới (service đã xử lý, field này harmless) -->
+                        <input type="hidden" name="existingPhoto" th:value="${user.photos}"/>
+
+                        <!-- Email (readonly) -->
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" th:value="${user.email}" readonly disabled>
+                        </div>
+
+                        <!-- Roles (hiển thị, không submit) -->
+                        <div class="mb-3">
+                            <label class="form-label">Roles</label>
+                            <div>
+                                <span class="role-chip" th:each="r : ${user.roles}" th:text="${r.name}">ROLE</span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">First name</label>
+                                <input type="text" class="form-control" name="firstName" th:value="${user.firstName}" required>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label">Last name</label>
+                                <input type="text" class="form-control" name="lastName" th:value="${user.lastName}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New password <span class="text-muted">(để trống nếu không đổi)</span></label>
+                            <input type="password" class="form-control" name="password" autocomplete="new-password">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Photo</label>
+                            <input class="form-control" type="file" name="image" id="fileImage" accept="image/*">
+                            <div class="form-text">Tối đa 1MB. JPG/PNG.</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-regular fa-floppy-disk me-1"></i>Save changes
+                            </button>
+                            <a th:href="@{/}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mb-3">
+            <p class="text-muted mb-0">&copy; Ecommerce Control Panel</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // preview ảnh
+    document.getElementById('fileImage')?.addEventListener('change', function () {
+        if (!this.files || !this.files[0]) return;
+        const file = this.files[0];
+        if (file.size > 1048576) { // >1MB
+            alert("The selected file exceeds 1MB.");
+            this.value = "";
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
+        reader.readAsDataURL(file);
+    });
+</script>
+</body>
+</html>

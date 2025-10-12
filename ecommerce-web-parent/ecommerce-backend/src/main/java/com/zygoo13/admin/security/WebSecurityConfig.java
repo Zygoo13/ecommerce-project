@@ -34,9 +34,9 @@ public class WebSecurityConfig {
                         .loginProcessingUrl("/login")
                         .usernameParameter("email")     // dùng email để đăng nhập
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error=true")
-                        .permitAll()
+                        .defaultSuccessUrl("/", true) // đăng nhập thành công chuyển về trang chủ
+                        .failureUrl("/login?error=true") // đăng nhập thất bại
+                        .permitAll() // cho phép tất cả mọi người truy cập trang login
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -49,19 +49,21 @@ public class WebSecurityConfig {
                         .key("uniqueAndSecret")
                         .tokenValiditySeconds(7 * 24 * 60 * 60)
                 )
-                .authenticationProvider(authenticationProvider());
+                .authenticationProvider(authenticationProvider()); // Cấu hình AuthenticationProvider
 
         return http.build();
     }
 
+    // Cấu hình AuthenticationProvider sử dụng UserDetailsService và PasswordEncoder
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(); // Sử dụng DaoAuthenticationProvider
+        provider.setUserDetailsService(userDetailsService); // Cung cấp UserDetailsService để tải thông tin người dùng
+        provider.setPasswordEncoder(passwordEncoder()); // Cung cấp PasswordEncoder để mã hóa và so sánh mật khẩu
+        return provider; // Trả về AuthenticationProvider đã cấu hình
     }
 
+    // Cấu hình PasswordEncoder sử dụng BCrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

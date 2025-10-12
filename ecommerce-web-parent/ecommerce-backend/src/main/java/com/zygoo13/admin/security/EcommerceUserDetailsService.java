@@ -15,11 +15,13 @@ public class EcommerceUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    // Tải thông tin user từ database dựa trên email (username)
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // Đánh dấu phương thức này là read-only transaction
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // Tìm user theo email
         User user = userRepository.findByEmailOption(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Could not find user with email: " + email));
-        return new EcommerceUserDetails(user);
+        return new EcommerceUserDetails(user); // Trả về đối tượng UserDetails
     }
 }

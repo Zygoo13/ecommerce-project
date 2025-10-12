@@ -20,9 +20,10 @@ public class EcommerceUserDetails implements UserDetails {
         this.user = user;
     }
 
+    // Chuyển đổi danh sách Role của User thành danh sách GrantedAuthority
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // map "ADMIN" -> "ROLE_ADMIN"
+        // Thêm tiền tố "ROLE_" vào tên vai trò để phù hợp với chuẩn của Spring Security
         return user.getRoles().stream()
                 .map(Role::getName)
                 .map(name -> "ROLE_" + name)
@@ -37,6 +38,10 @@ public class EcommerceUserDetails implements UserDetails {
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return user.isEnabled(); }
+
+    public String getFullName() {
+        return user.getFullName();
+    }
 
     public User getUser() { return user; }
 }
